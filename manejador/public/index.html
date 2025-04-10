@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Manejador de Subastas</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .subasta {
+            border: 1px solid black;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        img {
+            width: 150px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+<h1>🎯 Bienvenido al Manejador de Subastas</h1>
+
+<div id="listaSubastas"></div> <!-- Aquí se cargan las subastas dinámicamente -->
+
+<h2 id="estadoSubasta"></h2> <!-- Estado general (ganador, tiempo, etc.) -->
+
+<script>
+    let intervalo;
+    let subastaActiva = null; // Solo una subasta activa
+
+    // Cargar las subastas desde el backend
+    async function cargarSubastas() {
+        try {
+            const response = await fetch("/subastas");
+            const data = await response.json();
+            renderizarSubastas(data);
+        } catch (error) {
+            console.error("❌ Error cargando subastas:", error);
+        }
+    }
+
+    // Dibujar las subastas
+    function renderizarSubastas(subastas) {
+        const contenedor = document.getElementById("listaSubastas");
+        contenedor.innerHTML = "";
+
+        subastas.forEach(subasta => {
+            const div = document.createElement("div");
+            div.className = "subasta";
+            div.id = `subasta-${subasta.id}`;
+
+            div.innerHTML = `
+                <h2>${subasta.titulo}</h2>
+                <p><b>Artista:</b> ${subasta.artista}</p>
+                <img src="${subasta.imagen}" alt="${subasta.titulo}">
+                <p><b>Precio base actual:</b> $<span id="precio-${subasta.id}">${subasta.precioBase}</span></p>
+                <input type="number" id="nuevoPrecio-${subasta.id}" placeholder="Nuevo precio base">
+                <button onclick="editarPrecio(${subasta.id})">Editar Precio Base</button>
+                <br><br>
+                <button onclick="iniciarSubasta(${subasta.id})" id="botonIniciar-${subasta.id}">Iniciar Subasta</button>
+            `;
+
+            contenedor.appendChild(div);
+        });
+    }
+
+    // Editar el precio base
+    async function editarPrecio(subastaId) {
+        const nuevoPrecio = document.getElementById(`nuevoPrecio-${subastaId}`).value;
+
+        if (nuevoPrecio.trim() === "") {
+            alert("❌ Ingresa un nuevo precio");
+            return;
+        }
+
+        try {
+            const response = await fetch("/editar-precio", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ subastaId, nuevoPrecio })
+            });
+
+            if (!response.ok) throw new Error("Error editando precio");
+
+            const data = await response.json();
+            alert("✅ Precio editado correctamente");
+
+            // Actualizar en pantalla
+            document.getElementById(`precio-${subastaId}`).innerText = nuevoPrecio;
+        } catch (error) {
+            alert("❌ Error al editar precio");
+            console.error(error);
+        }
+    }
+
+    // Iniciar subasta
+    async function iniciarSubasta(subastaId) {
+        if (subastaActiva) {
+            alert("❌ Ya hay una subasta activa. Debes esperar a que termine.");
+            return;
+        }
+
+        try {
+            const response = await fetch("/iniciar-subasta", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ subastaId })
+            });
+
+            if (!response.ok) throw new Error("Error iniciando subasta");
+
+            alert("✅ Subasta iniciada correctamente");
+            subastaActiva = subastaId; // Marcar que ya hay una subasta activa
+            intervalo = setInterval(actualizarEstadoSubasta, 1000); // Cada segundo
+        } catch (error) {
+            alert("❌ Error al iniciar subasta");
+            console.error(error);
+        }
+    }
+
+    // Actualizar estado de la subasta activa
+    async function actualizarEstadoSubasta() {
+        if (!subastaActiva) return;
+
+        try {
+            const response = await fetch("http://localhost:8080/estado-subasta/1");
+            const data = await response.json();
+            const estado = document.getElementById("estadoSubasta");
+
+            if (data.activa) {
+                estado.innerHTML = `⏳ Subasta en progreso...<br>⏰ Tiempo restante: ${data.restante} segundos`;
+            } else {
+                clearInterval(intervalo);
+                subastaActiva = null; // Liberar para permitir iniciar otra
+                if (data.ganador) {
+                    estado.innerHTML = `🏆 Subasta terminada. Ganador: <b>${data.ganador}</b> con una oferta de <b>$${data.oferta}</b>`;
+                } else {
+                    estado.innerHTML = "❌ Subasta terminada sin ganador.";
+                }
+                // Refrescar subastas para mostrar precios actualizados si es necesario
+                cargarSubastas();
+            }
+        } catch (error) {
+            console.error("❌ Error al actualizar estado:", error);
+        }
+    }
+
+    cargarSubastas(); // Al cargar la página
+</script>
+
+</body>
+</html>

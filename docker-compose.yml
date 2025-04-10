@@ -1,0 +1,22 @@
+services:
+  manejador:
+    build: ./manejador
+    container_name: manejador
+    ports:
+      - "8080:8080"
+    networks:
+      - subastas-net
+
+  postores:
+    build: ./postores
+    container_name: postores
+    ports:
+      - "8081:8081"
+    networks:
+      - subastas-net
+    depends_on:
+      - manejador
+
+networks:
+  subastas-net:
+    driver: bridge

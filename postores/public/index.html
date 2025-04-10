@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Portal de Postores</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<h1>👥 Bienvenido al Portal de Postores</h1>
+
+<h2>Registro de Postor</h2>
+<input type="text" id="nombrePostor" placeholder="Tu nombre">
+<select id="subastaSelect">
+    <option value="1">The Mona Lisa</option>
+    <option value="2">Starry Night</option>
+    <option value="3">The Persistence of Memory</option>
+</select>
+<button onclick="registrarPostor()">Registrarse</button>
+
+<h2>Realizar Oferta</h2>
+<input type="number" id="montoOferta" placeholder="Monto de la oferta">
+<button onclick="enviarOferta()">Ofertar</button>
+
+<h2>Estado</h2>
+<div id="estadoSubasta"></div>
+
+<script>
+    let estadoActual = null;
+    let subastaIdSeleccionada = 1;
+    let postoresActuales = [];
+    const socket = new WebSocket("ws://localhost:8080");
+
+    // Conexión WebSocket
+    socket.addEventListener("open", () => {
+        console.log("🟢 Conectado al WebSocket del manejador");
+    });
+
+    socket.addEventListener("message", (event) => {
+        const mensaje = JSON.parse(event.data);
+
+        // 🔥 Escuchar todos los tipos de mensajes
+        if (mensaje.tipo === "ofertaNueva" && mensaje.payload.subastaId === subastaIdSeleccionada) {
+            console.log("📢 Nueva oferta recibida:", mensaje.payload);
+            actualizarEstado();
+        }
+
+        if (mensaje.tipo === "subastaTerminada" && mensaje.payload.subastaId === subastaIdSeleccionada) {
+            console.log("🏆 Subasta terminada:", mensaje.payload);
+            alert(`🏆 Subasta terminada. ${mensaje.payload.ganador ? "Ganador: " + mensaje.payload.ganador + " con $" + mensaje.payload.monto : "No hubo ganador."}`);
+            actualizarEstado();
+        }
+
+        if (mensaje.tipo === "postoresUpdate" && mensaje.payload.subastaId === subastaIdSeleccionada) {
+            console.log("📝 Postores actualizados:", mensaje.payload.postores);
+            actualizarEstado();
+        }
+    });
+
+    async function registrarPostor() {
+        const nombre = document.getElementById('nombrePostor').value.trim();
+        subastaIdSeleccionada = parseInt(document.getElementById('subastaSelect').value);
+
+        if (nombre === "") {
+            alert("❌ Ingresa tu nombre para registrarte");
+            return;
+        }
+
+        const estado = await obtenerEstadoSubasta(subastaIdSeleccionada);
+        if (!estado.activa) {
+            alert("❌ No puedes registrarte en una subasta que no está activa");
+            return;
+        }
+
+        try {
+            const response = await fetch("/registrar-postor", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre, subastaId: subastaIdSeleccionada })
+            });
+
+            if (!response.ok) throw new Error("Error registrando postor");
+            const data = await response.json();
+            alert("✅ Registro exitoso");
+            console.log(data);
+
+            actualizarEstado();
+        } catch (error) {
+            console.error(error);
+            alert("❌ Error registrando postor");
+        }
+    }
+
+    async function enviarOferta() {
+        const nombre = document.getElementById('nombrePostor').value.trim();
+        const monto = parseFloat(document.getElementById('montoOferta').value.trim());
+
+        if (!nombre || isNaN(monto)) {
+            alert("❌ Debes ingresar tu nombre y un monto válido");
+            return;
+        }
+
+        if (!estadoActual) {
+            alert("❌ No se ha cargado el estado de la subasta");
+            return;
+        }
+
+        const estado = await obtenerEstadoSubasta(subastaIdSeleccionada);
+        if (!estado.activa) {
+            alert("❌ No puedes ofertar en una subasta que no está activa");
+            return;
+        }
+
+        let precioActual;
+        if (estadoActual.ofertas.length === 0) {
+            precioActual = estadoActual.precioBase;
+        } else {
+            const ultimaOferta = estadoActual.ofertas[estadoActual.ofertas.length - 1];
+            precioActual = ultimaOferta.monto;
+        }
+
+        if (monto <= precioActual) {
+            alert(`❌ Tu oferta debe ser mayor a $${precioActual}`);
+            return;
+        }
+
+        try {
+            const response = await fetch("/ofertar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre, monto, subastaId: subastaIdSeleccionada })
+            });
+
+            if (!response.ok) throw new Error("Error enviando oferta");
+            const data = await response.json();
+            alert("✅ Oferta enviada exitosamente");
+            console.log(data);
+
+            actualizarEstado();
+        } catch (error) {
+            console.error(error);
+            alert("❌ Error enviando oferta");
+        }
+    }
+
+    async function obtenerEstadoSubasta(id) {
+        try {
+            const response = await fetch(`/estado-subasta/${id}`);
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Error al obtener estado de subasta:", error);
+            return { activa: false };
+        }
+    }
+
+    async function actualizarEstado() {
+        try {
+            const response = await fetch(`/estado-subasta/${subastaIdSeleccionada}`);
+            const data = await response.json();
+            estadoActual = data;
+            postoresActuales = data.ofertas || []; // Actualizar ofertas
+            renderizarEstado();
+        } catch (error) {
+            console.error("Error al actualizar estado:", error);
+        }
+    }
+
+    function renderizarEstado() {
+        if (!estadoActual) return;
+
+        let estadoHTML = "";
+
+        if (estadoActual.activa) {
+            estadoHTML += `<p>⏳ Subasta en progreso...</p>`;
+            estadoHTML += `<p>⏰ Tiempo restante: ${estadoActual.restante} segundos</p>`;
+        } else {
+            if (estadoActual.ganador) {
+                estadoHTML += `<p>🏆 Subasta finalizada</p>`;
+                estadoHTML += `<p>Ganador: <strong>${estadoActual.ganador}</strong> con una oferta de <strong>$${estadoActual.oferta}</strong></p>`;
+            } else {
+                estadoHTML += `<p>❌ Subasta finalizada sin ganador</p>`;
+            }
+        }
+
+        if (postoresActuales.length > 0) {
+            estadoHTML += `<h3>📝 Postores registrados:</h3><ul>`;
+            postoresActuales.forEach(oferta => {
+                estadoHTML += `<li><strong>${oferta.nombre}</strong> ofertó <strong>$${oferta.monto}</strong></li>`;
+            });
+            estadoHTML += `</ul>`;
+        } else {
+            estadoHTML += `<p>📝 No hay ofertas aún.</p>`;
+        }
+
+        document.getElementById("estadoSubasta").innerHTML = estadoHTML;
+    }
+
+    setInterval(actualizarEstado, 5000); // cada 5 segundos
+    actualizarEstado();
+</script>
+
+</body>
+</html>
