@@ -1,4 +1,4 @@
-# Dockerfile - manejador
+# Dockerfile.manejador
 FROM node:18
 
 WORKDIR /app

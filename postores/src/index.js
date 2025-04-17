@@ -12,13 +12,12 @@ const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, "../public")));
 
 const PORT = 8081;
-//const MANEJADOR_URL = "http://localhost:8080"; // El manejador corre en el 8080 de manera local
-const MANEJADOR_URL = "http://manejador:8080"; //Link para docker
-
+//const MANEJADOR_URL = "http://localhost:8080"; // Para uso local
+const MANEJADOR_URL = "http://manejador:8080"; // Para uso en Docker
 
 // Registrar postor
 app.post("/registrar-postor", async (req, res) => {
-    const { nombre, subastaId } = req.body; // 🔥 Recibimos subastaId
+    const { nombre, subastaId } = req.body;
 
     try {
         const respuesta = await fetch(`${MANEJADOR_URL}/actualizar-postores`, {
@@ -34,11 +33,33 @@ app.post("/registrar-postor", async (req, res) => {
     }
 });
 
-// Realizar oferta
+// Realizar oferta (validando mínimo incremento)
 app.post("/ofertar", async (req, res) => {
-    const { nombre, monto, subastaId } = req.body; // 🔥 Recibimos subastaId
+    const { nombre, monto, subastaId } = req.body;
 
     try {
+        // Obtener estado actual para validar incremento
+        const estadoRes = await fetch(`${MANEJADOR_URL}/estado-subasta/${subastaId}`);
+        const estado = await estadoRes.json();
+
+        if (!estado.activa) {
+            return res.status(400).json({ error: "La subasta no está activa" });
+        }
+
+        let precioActual = estado.precioBase;
+        if (estado.ofertas && estado.ofertas.length > 0) {
+            const ultima = estado.ofertas[estado.ofertas.length - 1];
+            precioActual = ultima.monto;
+        }
+
+        if (monto <= precioActual) {
+            return res.status(400).json({ error: `Tu oferta debe ser mayor a $${precioActual}` });
+        }
+
+        if (estado.incrementoMinimo && (monto - precioActual) < estado.incrementoMinimo) {
+            return res.status(400).json({ error: `La oferta debe aumentar al menos $${estado.incrementoMinimo}` });
+        }
+
         const respuesta = await fetch(`${MANEJADOR_URL}/ofertar`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -52,8 +73,8 @@ app.post("/ofertar", async (req, res) => {
     }
 });
 
-// Estado de la subasta
-app.get("/estado-subasta/:id", async (req, res) => { // 🔥 Estado por id
+// Estado de subasta por ID
+app.get("/estado-subasta/:id", async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -65,12 +86,12 @@ app.get("/estado-subasta/:id", async (req, res) => { // 🔥 Estado por id
     }
 });
 
-// Página principal (sirve el HTML)
+// Página principal
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
-// Levantar servidor
+// Levantar el servidor
 app.listen(PORT, () => {
     console.log(`🚀 Servicio de postores corriendo en puerto ${PORT}`);
 });

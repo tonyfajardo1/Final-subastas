@@ -1,4 +1,3 @@
-/* styles.css */
 body {
     font-family: 'Arial', sans-serif;
     background-color: #f4f6f9;
@@ -83,4 +82,50 @@ select {
 
 strong {
     color: #2c3e50;
+}
+
+/* Tarjetas de subastas */
+.subasta {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 600px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    text-align: left;
+}
+
+.subasta h2 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+.subasta img {
+    display: block;
+    margin: 10px auto;
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+/* Sección de resumen de ganadores */
+#ganadores {
+    background-color: #eafaf1;
+    border: 2px dashed #5cb85c;
+    padding: 20px;
+    margin-top: 40px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 8px;
+    text-align: left;
+}
+
+#ganadores ul li {
+    background-color: #dff0d8;
+    color: #3c763d;
+    display: block;
+    padding: 10px 15px;
+    border-left: 4px solid #5cb85c;
+    margin-bottom: 10px;
 }

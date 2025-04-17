@@ -2,11 +2,11 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const http = require("http");
-const { WebSocketServer } = require("ws"); // WebSocket agregado
+const { WebSocketServer } = require("ws");
 
 const app = express();
-const server = http.createServer(app); // Servidor HTTP
-const wss = new WebSocketServer({ server }); // WebSocket server
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
 
 app.use(cors());
 app.use(express.json());
@@ -14,174 +14,184 @@ app.use(express.static(path.join(__dirname, "../public")));
 
 const PORT = 8080;
 
+// Subastas iniciales
 let subastas = [
     {
         id: 1,
         titulo: "The Mona Lisa",
         artista: "Leonardo da Vinci",
         imagen: "https://upload.wikimedia.org/wikipedia/commons/6/6a/Mona_Lisa.jpg",
-        precioBase: 100,
-        precioFinal: 100,
-        duracion: 60,
+        año: 1503,
+        precioBase: 200000000,
+        precioFinal: 200000000,
+        incrementoMinimo: 1000000,
+        duracion: 30,
         activa: false,
         ofertas: [],
         postores: [],
-        inicio: null
+        inicio: null,
+        orden: 1
     },
     {
         id: 2,
-        titulo: "Starry Night",
-        artista: "Vincent van Gogh",
-        imagen: "https://upload.wikimedia.org/wikipedia/commons/9/9f/%22La_noche_estrellada%22_de_Van_gogh.jpg",
-        precioBase: 500,
-        precioFinal: 500,
-        duracion: 60,
+        titulo: "The Dance Class",
+        artista: "Edgar Degas",
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/8/81/Edgar_Degas_-_The_Ballet_Class_-_Google_Art_Project.jpg",
+        año: 1874,
+        precioBase: 10000000,
+        precioFinal: 10000000,
+        incrementoMinimo: 500000,
+        duracion: 30,
         activa: false,
         ofertas: [],
         postores: [],
-        inicio: null
+        inicio: null,
+        orden: 2
     },
     {
         id: 3,
-        titulo: "The Persistence of Memory",
-        artista: "Salvador Dalí",
-        imagen: "https://upload.wikimedia.org/wikipedia/en/d/dd/The_Persistence_of_Memory.jpg",
-        precioBase: 300,
-        precioFinal: 300,
-        duracion: 60,
+        titulo: "L'Absinthe",
+        artista: "Edgar Degas",
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/e/e8/Edgar_Degas_-_In_a_Caf%C3%A9_-_Google_Art_Project_2.jpg",
+        año: 1876,
+        precioBase: 19000000,
+        precioFinal: 19000000,
+        incrementoMinimo: 500000,
+        duracion: 30,
         activa: false,
         ofertas: [],
         postores: [],
-        inicio: null
+        inicio: null,
+        orden: 3
+    },
+    {
+        id: 4,
+        titulo: "Portrait of a Woman in a Hat",
+        artista: "Amedeo Modigliani",
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/7/71/Amedeo-modigliani-jeanne-hebuterne-with-hat-and-necklace.jpg",
+        año: 1918,
+        precioBase: 67000000,
+        precioFinal: 67000000,
+        incrementoMinimo: 1000000,
+        duracion: 30,
+        activa: false,
+        ofertas: [],
+        postores: [],
+        inicio: null,
+        orden: 4
+    },
+    {
+        id: 5,
+        titulo: "Woman with Red Hair",
+        artista: "Amedeo Modigliani",
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/8/8e/Amedeo_Modigliani_-_Woman_with_Red_Hair_%281917%29.jpg",
+        año: 1919,
+        precioBase: 120000000,
+        precioFinal: 120000000,
+        incrementoMinimo: 1000000,
+        duracion: 30,
+        activa: false,
+        ofertas: [],
+        postores: [],
+        inicio: null,
+        orden: 5
+    },
+    {
+        id: 6,
+        titulo: "Portrait of Dora Maar",
+        artista: "Pablo Picasso",
+        imagen: "https://upload.wikimedia.org/wikipedia/en/d/d4/Portrait_of_Dora_Maar.jpg",
+        año: 1937,
+        precioBase: 90000000,
+        precioFinal: 90000000,
+        incrementoMinimo: 1000000,
+        duracion: 30,
+        activa: false,
+        ofertas: [],
+        postores: [],
+        inicio: null,
+        orden: 6
+    },
+    {
+        id: 7,
+        titulo: "Self-Portrait",
+        artista: "Vincent Van Gogh",
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/b/b2/Vincent_van_Gogh_-_Self-Portrait_-_Google_Art_Project.jpg",
+        año: 1889,
+        precioBase: 100000000,
+        precioFinal: 100000000,
+        incrementoMinimo: 1000000,
+        duracion: 30,
+        activa: false,
+        ofertas: [],
+        postores: [],
+        inicio: null,
+        orden: 7
     }
 ];
 
-// Función para obtener el ganador
+
+// Estado de la secuencia
+let estadoSecuencia = {
+    enCurso: false,
+    indiceActual: 0
+};
+
 function obtenerGanador(subasta) {
     if (!subasta.ofertas.length) return null;
     return subasta.ofertas.reduce((max, oferta) => oferta.monto > max.monto ? oferta : max, subasta.ofertas[0]);
 }
 
-// Función para enviar WebSocket a todos
 function broadcast(tipo, payload) {
     const mensaje = { tipo, payload };
     wss.clients.forEach(client => {
-        if (client.readyState === 1) { // WebSocket.OPEN
+        if (client.readyState === 1) {
             client.send(JSON.stringify(mensaje));
         }
     });
 }
 
-// WebSocket eventos
+// WebSocket conexión
 wss.on("connection", (ws) => {
     console.log("🔵 Cliente conectado a WebSocket");
 });
 
-// Ver todas las subastas
-app.get("/subastas", (req, res) => {
-    res.json(subastas);
-});
+// Endpoints
 
-// Ver subastas activas
-app.get("/subastas/activas", (req, res) => {
-    res.json(subastas.filter(s => s.activa));
-});
+app.get("/subastas", (req, res) => res.json(subastas));
 
-// Iniciar subasta
-app.post("/iniciar-subasta", (req, res) => {
-    const { subastaId } = req.body;
-    const subastaActiva = subastas.find(s => s.activa);
+app.get("/subastas/activas", (req, res) => res.json(subastas.filter(s => s.activa)));
 
-    if (subastaActiva) {
-        return res.status(400).json({ error: `Ya hay una subasta activa: ${subastaActiva.titulo}` });
-    }
-
-    const subasta = subastas.find(s => s.id === subastaId);
-    if (!subasta) {
-        return res.status(404).json({ error: "Subasta no encontrada" });
-    }
-
-    subasta.activa = true;
-    subasta.inicio = Date.now();
-    subasta.ofertas = [];
-    subasta.postores = [];
-    subasta.precioFinal = subasta.precioBase;
-
-    console.log(`⏳ Subasta ${subasta.titulo} iniciada`);
-
-    setTimeout(() => {
-        subasta.activa = false;
-        const ganador = obtenerGanador(subasta);
-
-        // 🔥 WebSocket para enviar ganador al terminar
-        broadcast("subastaTerminada", {
-            subastaId: subasta.id,
-            ganador: ganador ? ganador.nombre : null,
-            monto: ganador ? ganador.monto : null
-        });
-
-        if (ganador) {
-            console.log(`🏆 Subasta ${subasta.titulo} finalizada. Ganador: ${ganador.nombre} con $${ganador.monto}`);
-        } else {
-            console.log(`❌ Subasta ${subasta.titulo} finalizada sin ofertas.`);
-        }
-    }, subasta.duracion * 1000);
-
-    res.json({ message: "Subasta iniciada", subasta });
-});
-
-// Ofertar
-app.post("/ofertar", (req, res) => {
-    const { subastaId, nombre, monto } = req.body;
-    const subasta = subastas.find(s => s.id === subastaId);
-
-    if (!subasta || !subasta.activa) {
-        return res.status(400).json({ error: "Subasta no activa" });
-    }
-
-    subasta.ofertas.push({ nombre, monto });
-    subasta.precioFinal += monto;
-
-    // 🔥 WebSocket para nueva oferta
-    broadcast("ofertaNueva", {
-        subastaId,
-        nombre,
-        monto
-    });
-
-    res.json({ message: "Oferta aceptada", subasta });
-});
-
-// Editar precio base
 app.post("/editar-precio", (req, res) => {
-    const { subastaId, nuevoPrecio } = req.body;
+    const { subastaId, nuevoPrecio, nuevoIncremento, nuevaDuracion } = req.body;
     const subasta = subastas.find(s => s.id === subastaId);
-
-    if (!subasta) {
-        return res.status(404).json({ error: "Subasta no encontrada" });
-    }
+    if (!subasta) return res.status(404).json({ error: "Subasta no encontrada" });
 
     subasta.precioBase = nuevoPrecio;
     subasta.precioFinal = nuevoPrecio;
 
-    console.log(`✏️ Precio base de la subasta "${subasta.titulo}" actualizado a $${nuevoPrecio}`);
+    if (nuevoIncremento !== undefined) subasta.incrementoMinimo = nuevoIncremento;
+    if (nuevaDuracion !== undefined) subasta.duracion = nuevaDuracion;
 
-    res.json({ message: "Precio base actualizado correctamente", subasta });
+    res.json({ message: "Datos actualizados", subasta });
 });
 
-// Registrar postores
+app.post("/cambiar-orden", (req, res) => {
+    const { subastaId, orden } = req.body;
+    const subasta = subastas.find(s => s.id === subastaId);
+    if (!subasta) return res.status(404).json({ error: "Subasta no encontrada" });
+
+    subasta.orden = parseInt(orden);
+    res.json({ message: "Orden actualizado", subasta });
+});
+
 app.post("/actualizar-postores", (req, res) => {
     const { subastaId, nombre } = req.body;
     const subasta = subastas.find(s => s.id === subastaId);
-
-    if (!subasta) {
-        return res.status(400).json({ error: "Subasta no encontrada" });
-    }
+    if (!subasta) return res.status(400).json({ error: "Subasta no encontrada" });
 
     if (!subasta.postores.includes(nombre)) {
         subasta.postores.push(nombre);
-
-        // 🔥 WebSocket para nuevos postores
         broadcast("postoresUpdate", {
             subastaId: subasta.id,
             postores: subasta.postores
@@ -191,61 +201,117 @@ app.post("/actualizar-postores", (req, res) => {
     res.json({ message: "Postor registrado", subasta });
 });
 
-// Estado de la subasta
+app.post("/ofertar", (req, res) => {
+    const { subastaId, nombre, monto } = req.body;
+    const subasta = subastas.find(s => s.id === subastaId);
+    if (!subasta || !subasta.activa) {
+        return res.status(400).json({ error: "Subasta no activa" });
+    }
+
+    const ultimaOferta = subasta.ofertas.at(-1);
+    const minimo = subasta.incrementoMinimo || 1;
+    const base = ultimaOferta ? ultimaOferta.monto : subasta.precioBase;
+
+    if (monto - base < minimo) {
+        return res.status(400).json({
+            error: `Oferta muy baja. Debe aumentar al menos $${minimo} desde el valor actual de $${base}`
+        });
+    }
+
+    subasta.ofertas.push({ nombre, monto });
+    subasta.precioFinal = monto;
+    broadcast("ofertaNueva", { subastaId, nombre, monto });
+
+    res.json({ message: "Oferta aceptada", subasta });
+});
+
+// Secuencia persistente
+let ordenadasGlobal = [];
+
+app.post("/iniciar-subastas-secuencialmente", async (req, res) => {
+    if (estadoSecuencia.enCurso) {
+        return res.status(400).json({ error: "La secuencia ya está en curso." });
+    }
+
+    estadoSecuencia.enCurso = true;
+    estadoSecuencia.indiceActual = 0;
+    ordenadasGlobal = [...subastas].sort((a, b) => a.orden - b.orden);
+
+    iniciarSecuencial(); // sin await para que se mantenga en ejecución
+    res.json({ message: "Secuencia de subastas iniciada." });
+});
+
+async function iniciarSecuencial() {
+    for (let i = estadoSecuencia.indiceActual; i < ordenadasGlobal.length; i++) {
+        const subasta = ordenadasGlobal[i];
+        estadoSecuencia.indiceActual = i;
+
+        subasta.activa = true;
+        subasta.inicio = Date.now();
+        subasta.ofertas = [];
+        subasta.postores = [];
+        subasta.precioFinal = subasta.precioBase;
+
+        console.log(`⏳ Subasta ${subasta.titulo} iniciada`);
+        broadcast("subastaIniciada", { subastaId: subasta.id });
+
+        await new Promise(resolve => setTimeout(() => {
+            subasta.activa = false;
+            const ganador = obtenerGanador(subasta);
+            broadcast("subastaTerminada", {
+                subastaId: subasta.id,
+                ganador: ganador ? ganador.nombre : null,
+                monto: ganador ? ganador.monto : null
+            });
+            console.log(`✅ Subasta ${subasta.titulo} finalizada`);
+            resolve();
+        }, subasta.duracion * 1000));
+    }
+
+    estadoSecuencia.enCurso = false;
+    estadoSecuencia.indiceActual = 0;
+}
+
 app.get("/estado-subasta/:subastaId", (req, res) => {
     const subastaId = parseInt(req.params.subastaId);
     const subasta = subastas.find(s => s.id === subastaId);
-
-    if (!subasta) {
-        return res.status(404).json({ error: "Subasta no encontrada" });
-    }
+    if (!subasta) return res.status(404).json({ error: "Subasta no encontrada" });
 
     const ahora = Date.now();
     const restante = subasta.activa
         ? Math.max(0, Math.floor((subasta.inicio + subasta.duracion * 1000 - ahora) / 1000))
         : 0;
 
-    const mejorOferta = subasta.ofertas.reduce((max, oferta) =>
-        oferta.monto > max.monto ? oferta : max, { monto: 0, nombre: null });
+    const mejorOferta = subasta.ofertas.reduce((max, o) => o.monto > max.monto ? o : max, { monto: 0, nombre: null });
 
     res.json({
+        id: subasta.id,
+        titulo: subasta.titulo,
+        artista: subasta.artista,
+        imagen: subasta.imagen,
         activa: subasta.activa,
         restante,
         ganador: !subasta.activa && mejorOferta.nombre ? mejorOferta.nombre : null,
         oferta: !subasta.activa ? mejorOferta.monto : null,
         postores: subasta.postores,
         ofertas: subasta.ofertas,
-        precioBase: subasta.precioBase
+        precioBase: subasta.precioBase,
+        incrementoMinimo: subasta.incrementoMinimo,
+        duracion: subasta.duracion
     });
 });
 
-// Cambiar orden
-app.post("/cambiar-orden", (req, res) => {
-    const { subastaId, direccion } = req.body;
-    const index = subastas.findIndex(s => s.id === subastaId);
-
-    if (index === -1) {
-        return res.status(404).json({ error: "Subasta no encontrada" });
-    }
-
-    if (direccion === "arriba" && index > 0) {
-        [subastas[index - 1], subastas[index]] = [subastas[index], subastas[index - 1]];
-    } else if (direccion === "abajo" && index < subastas.length - 1) {
-        [subastas[index], subastas[index + 1]] = [subastas[index + 1], subastas[index]];
-    } else {
-        return res.status(400).json({ error: "Movimiento no permitido" });
-    }
-
-    console.log(`🔀 Orden cambiado: ${subastas.map(s => s.titulo).join(" -> ")}`);
-    res.json({ message: "Orden cambiado" });
+app.get("/subastas/estado-general", (req, res) => {
+    res.json({
+        estadoSecuencia,
+        subastas
+    });
 });
 
-// Página principal
 app.get("/", (req, res) => {
     res.send("Servidor del Manejador de Subastas funcionando 🚀");
 });
 
-// Iniciar servidor
 server.listen(PORT, () => {
     console.log(`🚀 Manejador corriendo en puerto ${PORT}`);
 });

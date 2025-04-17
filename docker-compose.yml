@@ -1,22 +1,18 @@
 services:
   manejador:
-    build: ./manejador
-    container_name: manejador
+    build:
+      context: ./manejador
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
-    networks:
-      - subastas-net
+    volumes:
+      - ./manejador:/app
 
   postores:
-    build: ./postores
-    container_name: postores
+    build:
+      context: ./postores
+      dockerfile: Dockerfile
     ports:
       - "8081:8081"
-    networks:
-      - subastas-net
-    depends_on:
-      - manejador
-
-networks:
-  subastas-net:
-    driver: bridge
+    volumes:
+      - ./postores:/app

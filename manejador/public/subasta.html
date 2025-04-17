@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Detalle de Subasta</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    #detalleSubasta {
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    #detalleSubasta img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    li {
+      background-color: #ecf0f1;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+
+    .volver-btn {
+      display: block;
+      margin: 30px auto;
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .volver-btn:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+<body>
+<h1>🖼️ Detalle de Subasta</h1>
+
+<div id="detalleSubasta">
+  <h2 id="tituloSubasta"></h2>
+  <img id="imagenSubasta" src="" alt="Imagen de la obra">
+  <p><strong>🎨 Artista:</strong> <span id="artistaSubasta"></span></p>
+  <p><strong>💵 Precio base:</strong> $<span id="precioBaseSubasta"></span></p>
+  <p><strong>📈 Incremento mínimo:</strong> $<span id="incrementoMinimo"></span></p>
+  <p><strong>⏱️ Duración:</strong> <span id="duracionSubasta"></span> segundos</p>
+  <p><strong>👤 Postores:</strong> <span id="postoresSubasta"></span></p>
+  <h3>📑 Ofertas:</h3>
+  <ul id="ofertasSubasta"></ul>
+</div>
+
+<a href="/index.html">
+  <button class="volver-btn">🔙 Volver a la página principal</button>
+</a>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const subastaId = params.get("id");
+
+  fetch(`/estado-subasta/${subastaId}`)
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById("tituloSubasta").innerText = data.titulo;
+            document.getElementById("imagenSubasta").src = data.imagen;
+            document.getElementById("artistaSubasta").innerText = data.artista;
+            document.getElementById("precioBaseSubasta").innerText = data.precioBase;
+            document.getElementById("incrementoMinimo").innerText = data.incrementoMinimo;
+            document.getElementById("duracionSubasta").innerText = data.duracion;
+
+            document.getElementById("postoresSubasta").innerText =
+                    data.postores.length > 0 ? data.postores.join(", ") : "Ninguno";
+
+            const ul = document.getElementById("ofertasSubasta");
+            if (data.ofertas.length > 0) {
+              data.ofertas.forEach(oferta => {
+                const li = document.createElement("li");
+                li.innerHTML = `<strong>${oferta.nombre}</strong> ofertó <strong>$${oferta.monto}</strong>`;
+                ul.appendChild(li);
+              });
+            } else {
+              ul.innerHTML = "<li>No hay ofertas aún.</li>";
+            }
+          });
+</script>
+</body>
+</html>
