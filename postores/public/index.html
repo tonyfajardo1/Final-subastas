@@ -2,33 +2,319 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal de Postores</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .select-subasta {
+            margin: 20px 0;
+            text-align: center;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-radius: 8px;
+            border-left: 5px solid #2196f3;
+        }
+
+        .select-subasta label {
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 1.1rem;
+        }
+
+        .select-subasta select {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            min-width: 300px;
+        }
+
+        .form-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        input {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 25px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .estado {
+            margin-top: 30px;
+        }
+
+        .estado h2 {
+            border-bottom: 2px solid #e3f2fd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .alerta {
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .alerta-error {
+            background-color: #f8d7da;
+            border: 2px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alerta-advertencia {
+            background-color: #fff3cd;
+            border: 2px solid #ffecb5;
+            color: #856404;
+        }
+
+        .alerta-info {
+            background-color: #e3f2fd;
+            border-left: 5px solid #2196f3;
+            color: #0c5460;
+        }
+
+        .subasta-header {
+            background-color: #e3f2fd;
+            border-left: 5px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .subasta-header h2 {
+            margin: 0;
+            color: #0d47a1;
+            text-align: left;
+            border-bottom: none;
+        }
+
+        .subasta-header p {
+            margin: 5px 0 0;
+            color: #1565c0;
+        }
+
+        .ofertas-lista {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .ofertas-lista li {
+            background-color: #f8f9fa;
+            margin-bottom: 8px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border-left: 3px solid #3498db;
+        }
+
+        .precio {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .hidden {
+            display: none;
+        }
+        
+        .ganador {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 5px solid #28a745;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-<h1>👥 Bienvenido al Portal de Postores</h1>
+<div class="container">
+    <h1>👥 Bienvenido al Portal de Postores</h1>
 
-<h2>Registro de Postor</h2>
-<input type="text" id="nombrePostor" placeholder="Tu nombre">
-<select id="subastaSelect">
-    <option value="1">The Mona Lisa</option>
-    <option value="2">Starry Night</option>
-    <option value="3">The Persistence of Memory</option>
-</select>
-<button onclick="registrarPostor()">Registrarse</button>
+    <!-- Sección de selección de subasta (siempre visible) -->
+    <div class="select-subasta">
+        <label for="subastaSelect">Selecciona una subasta:</label>
+        <select id="subastaSelect">
+            <!-- Los elementos de este selector se cargarán dinámicamente -->
+        </select>
+    </div>
 
-<h2>Realizar Oferta</h2>
-<input type="number" id="montoOferta" placeholder="Monto de la oferta">
-<button onclick="enviarOferta()">Ofertar</button>
+    <!-- Secciones de registro y oferta (se ocultarán cuando corresponda) -->
+    <div id="interactionForms">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="nombrePostor">Tu nombre:</label>
+                <input type="text" id="nombrePostor" placeholder="Ingresa tu nombre">
+            </div>
+            <button onclick="registrarPostor()">Registrarse</button>
+        </div>
 
-<h2>Estado</h2>
-<div id="estadoSubasta"></div>
+        <h2>Realizar Oferta</h2>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="montoOferta">Monto a ofertar ($):</label>
+                <input type="number" id="montoOferta" placeholder="Ingresa tu oferta">
+            </div>
+            <button onclick="enviarOferta()">Ofertar</button>
+        </div>
+    </div>
+
+    <div class="estado">
+        <h2>Estado de la Subasta</h2>
+        <div id="estadoSubasta">
+            <!-- Aquí se mostrará el estado de la subasta -->
+            <div class="alerta alerta-info">
+                Cargando información de la subasta...
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     let estadoActual = null;
     let subastaIdSeleccionada = 1;
     let postoresActuales = [];
     const socket = new WebSocket("ws://localhost:8080");
+    let haySubastasActivas = false;
+
+    // Cargar las subastas disponibles cuando se inicia la página
+    window.onload = function() {
+        cargarSubastas();
+    };
+
+    // Función para cargar todas las subastas disponibles
+    async function cargarSubastas() {
+        try {
+            // Primero obtenemos todas las subastas
+            const responseAll = await fetch('/subastas');
+            if (!responseAll.ok) throw new Error("Error al obtener subastas");
+            const subastas = await responseAll.json();
+            
+            console.log("Subastas cargadas:", subastas);
+
+            // Luego verificamos si hay subastas activas
+            const responseActivas = await fetch('/subastas/activas');
+            if (!responseActivas.ok) throw new Error("Error al obtener subastas activas");
+            const subastasActivas = await responseActivas.json();
+            
+            console.log("Subastas activas:", subastasActivas);
+            haySubastasActivas = Array.isArray(subastasActivas) && subastasActivas.length > 0;
+            
+            // Actualizar el selector con todas las subastas disponibles
+            const selectElement = document.getElementById('subastaSelect');
+            selectElement.innerHTML = ''; // Limpiar opciones existentes
+            
+            // Asegurar que tenemos un array de subastas para iterar
+            if (Array.isArray(subastas) && subastas.length > 0) {
+                subastas.forEach(subasta => {
+                    const option = document.createElement('option');
+                    option.value = subasta.id;
+                    option.textContent = `${subasta.titulo} - ${subasta.artista}`;
+                    selectElement.appendChild(option);
+                });
+                
+                // Establecer la primera subasta como seleccionada por defecto
+                subastaIdSeleccionada = subastas[0].id;
+            } else {
+                // Si no hay subastas, mostrar una opción deshabilitada
+                const option = document.createElement('option');
+                option.disabled = true;
+                option.selected = true;
+                option.textContent = "No hay subastas disponibles";
+                selectElement.appendChild(option);
+                console.error("No se encontraron subastas disponibles");
+            }
+            
+            // Actualizar la subasta seleccionada si hay cambio y actualizar el estado
+            selectElement.addEventListener('change', function() {
+                subastaIdSeleccionada = parseInt(this.value);
+                actualizarEstado();
+            });
+            
+            // Aplicar las visibilidades iniciales
+            actualizarVisibilidadForms();
+            
+            // Actualizar el estado
+            actualizarEstado();
+        } catch (error) {
+            console.error("❌ Error cargando subastas:", error);
+            // Mostrar mensaje de error en la interfaz
+            document.getElementById('estadoSubasta').innerHTML = `
+                <div class="alerta alerta-error">
+                    <h3>❌ Error de conexión</h3>
+                    <p>No se pudieron cargar las subastas. Por favor, recarga la página o intenta más tarde.</p>
+                    <p>Detalles: ${error.message}</p>
+                </div>
+            `;
+            document.getElementById('interactionForms').classList.add('hidden');
+        }
+    }
+
+    function actualizarVisibilidadForms() {
+        const forms = document.getElementById('interactionForms');
+        if (!haySubastasActivas) {
+            forms.classList.add('hidden');
+        } else {
+            forms.classList.remove('hidden');
+        }
+    }
 
     socket.addEventListener("open", () => {
         console.log("🟢 Conectado al WebSocket del manejador");
@@ -44,8 +330,13 @@
 
         if (mensaje.tipo === "subastaTerminada" && mensaje.payload.subastaId === subastaIdSeleccionada) {
             console.log("🏁 Subasta terminada:", mensaje.payload);
-            alert(`🏁 Subasta finalizada. ${mensaje.payload.ganador ? "Ganador: " + mensaje.payload.ganador + " con $" + mensaje.payload.monto : "No hubo ganador."}`);
+            alert(`🏁 Subasta finalizada. ${mensaje.payload.ganador ? "Ganador: " + mensaje.payload.ganador + " con $" + formatearPrecio(mensaje.payload.monto) : "No hubo ganador."}`);
             actualizarEstado();
+        }
+
+        if (mensaje.tipo === "subastaIniciada") {
+            // Recargar las subastas activas
+            cargarSubastas();
         }
 
         if (mensaje.tipo === "postoresUpdate" && mensaje.payload.subastaId === subastaIdSeleccionada) {
@@ -63,6 +354,12 @@
         }
 
         const estado = await obtenerEstadoSubasta(subastaIdSeleccionada);
+        
+        if (!estado.configurada) {
+            alert("❌ Esta subasta aún no ha sido configurada por el manejador. Intenta registrarte más tarde cuando la configuración esté completa.");
+            return;
+        }
+        
         if (!estado.activa) {
             alert("❌ No puedes registrarte en una subasta que no está activa");
             return;
@@ -107,12 +404,12 @@
         }
 
         if (monto <= precioActual) {
-            alert(`❌ Tu oferta debe ser mayor a $${precioActual}`);
+            alert(`❌ Tu oferta debe ser mayor a $${formatearPrecio(precioActual)}`);
             return;
         }
 
         if (estado.incrementoMinimo && (monto - precioActual) < estado.incrementoMinimo) {
-            alert(`❌ Tu oferta debe subir al menos $${estado.incrementoMinimo}`);
+            alert(`❌ Tu oferta debe subir al menos $${formatearPrecio(estado.incrementoMinimo)}`);
             return;
         }
 
@@ -142,8 +439,34 @@
         }
     }
 
+    function formatearPrecio(precio) {
+        return Number(precio).toLocaleString('es-ES');
+    }
+
     async function actualizarEstado() {
         try {
+            // Primero verificamos si hay subastas activas
+            const responseActivas = await fetch('/subastas/activas');
+            if (!responseActivas.ok) throw new Error("Error al obtener subastas activas");
+            const subastasActivas = await responseActivas.json();
+            
+            haySubastasActivas = Array.isArray(subastasActivas) && subastasActivas.length > 0;
+            actualizarVisibilidadForms();
+            
+            // Si no hay subastas activas, mostramos un mensaje especial
+            if (!haySubastasActivas) {
+                document.getElementById('estadoSubasta').innerHTML = `
+                    <div class="alerta alerta-error">
+                        <h3>⚠️ No hay subastas activas</h3>
+                        <p>Ninguna subasta está activa en este momento.</p>
+                        <p>Por favor, espera a que el administrador inicie alguna subasta.</p>
+                        <p style="font-size: 0.9rem;">No es necesario seguir revisando esta página hasta que el administrador active las subastas.</p>
+                    </div>
+                `;
+                return; // Salir de la función para no mostrar detalles de subastas inactivas
+            }
+            
+            // Si hay al menos una subasta activa, seguimos con el flujo normal
             const data = await obtenerEstadoSubasta(subastaIdSeleccionada);
             estadoActual = data;
             postoresActuales = data.ofertas || [];
@@ -158,23 +481,61 @@
 
         let html = "";
 
+        // Añadir título de la subasta con estilo destacado al inicio del estado
+        html += `
+        <div class="subasta-header">
+            <h2>🖼️ ${estadoActual.titulo}</h2>
+            <p>Artista: ${estadoActual.artista}</p>
+        </div>`;
+
+        // Verificar si la subasta está activa
         if (estadoActual.activa) {
-            html += `<p>⏳ Subasta en progreso</p>`;
-            html += `<p>⏰ Tiempo restante: <strong>${estadoActual.restante}</strong> segundos</p>`;
-            html += `<p>📈 Mínimo incremento permitido: <strong>$${estadoActual.incrementoMinimo ?? "No definido"}</strong></p>`;
+            html += `
+            <div class="alerta alerta-info">
+                <p>⏳ Subasta en progreso</p>
+                <p>⏰ Tiempo restante: <strong>${estadoActual.restante}</strong> segundos</p>
+                <p>💰 Precio base: <strong>$${formatearPrecio(estadoActual.precioBase)}</strong></p>
+                <p>📈 Incremento mínimo: <strong>$${formatearPrecio(estadoActual.incrementoMinimo)}</strong></p>
+            </div>`;
+            
+            // No ocultar los formularios
+            document.getElementById('interactionForms').classList.remove('hidden');
         } else {
-            html += `<p>⛔ Subasta finalizada</p>`;
-            if (estadoActual.ganador) {
-                html += `<p>🏆 Ganador: <strong>${estadoActual.ganador}</strong> con $<strong>${estadoActual.oferta}</strong></p>`;
+            // Verificamos si la subasta está configurada
+            if (!estadoActual.configurada) {
+                html += `
+                <div class="alerta alerta-error">
+                    <h3>⚠️ Subasta sin configurar</h3>
+                    <p>Esta subasta aún no ha sido configurada por el administrador.</p>
+                </div>`;
+                
+                // Ocultar los formularios
+                document.getElementById('interactionForms').classList.add('hidden');
             } else {
-                html += `<p>❌ Sin ganador</p>`;
+                html += `
+                <div class="alerta alerta-advertencia">
+                    <h3>⏸️ Subasta inactiva</h3>
+                    <p>Esta subasta está configurada pero no activa. Espera a que el administrador la inicie.</p>
+                </div>`;
+                
+                // Ocultar los formularios
+                document.getElementById('interactionForms').classList.add('hidden');
+                
+                if (estadoActual.ganador) {
+                    html += `
+                    <div class="ganador">
+                        🏆 Ganador: <strong>${estadoActual.ganador}</strong> con $<strong>${formatearPrecio(estadoActual.oferta)}</strong>
+                    </div>`;
+                }
             }
         }
 
+        // Mostrar ofertas registradas
         if (postoresActuales.length > 0) {
-            html += `<h3>📋 Ofertas registradas:</h3><ul>`;
+            html += `<h3>📋 Ofertas registradas:</h3>
+            <ul class="ofertas-lista">`;
             postoresActuales.forEach(oferta => {
-                html += `<li><strong>${oferta.nombre}</strong> ofertó <strong>$${oferta.monto}</strong></li>`;
+                html += `<li><strong>${oferta.nombre}</strong> ofertó <span class="precio">$${formatearPrecio(oferta.monto)}</span></li>`;
             });
             html += `</ul>`;
         } else {

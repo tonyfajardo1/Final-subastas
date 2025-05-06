@@ -127,6 +127,22 @@ let subastas = [
         postores: [],
         inicio: null,
         orden: 7
+    },
+    {
+        id: 8,
+        titulo: "Subasta Sin Configurar",
+        artista: "Test Artist",
+        imagen: "https://via.placeholder.com/300x200?text=Sin+Configurar",
+        año: 2025,
+        precioBase: 0, // Precio base en 0 para que no se considere configurada
+        precioFinal: 0,
+        incrementoMinimo: 0, // Incremento en 0 para que no se considere configurada
+        duracion: 0, // Duración en 0 para que no se considere configurada
+        activa: false,
+        ofertas: [],
+        postores: [],
+        inicio: null,
+        orden: 8
     }
 ];
 
@@ -272,6 +288,51 @@ async function iniciarSecuencial() {
     estadoSecuencia.indiceActual = 0;
 }
 
+app.post("/iniciar-subasta-especifica", async (req, res) => {
+    const { subastaId } = req.body;
+    const subasta = subastas.find(s => s.id === parseInt(subastaId));
+    
+    if (!subasta) {
+        return res.status(404).json({ error: "Subasta no encontrada" });
+    }
+    
+    if (subasta.activa) {
+        return res.status(400).json({ error: "La subasta ya está activa" });
+    }
+    
+    if (estadoSecuencia.enCurso) {
+        return res.status(400).json({ error: "Hay una secuencia de subastas en curso" });
+    }
+    
+    // Verificar si la subasta está configurada
+    if (subasta.precioBase <= 0 || subasta.incrementoMinimo <= 0 || subasta.duracion <= 0) {
+        return res.status(400).json({ error: "La subasta no está correctamente configurada" });
+    }
+    
+    subasta.activa = true;
+    subasta.inicio = Date.now();
+    subasta.ofertas = [];
+    subasta.postores = [];
+    subasta.precioFinal = subasta.precioBase;
+    
+    console.log(`⏳ Subasta ${subasta.titulo} iniciada manualmente`);
+    broadcast("subastaIniciada", { subastaId: subasta.id });
+    
+    // Programar la finalización de la subasta después de la duración especificada
+    setTimeout(() => {
+        subasta.activa = false;
+        const ganador = obtenerGanador(subasta);
+        broadcast("subastaTerminada", {
+            subastaId: subasta.id,
+            ganador: ganador ? ganador.nombre : null,
+            monto: ganador ? ganador.monto : null
+        });
+        console.log(`✅ Subasta ${subasta.titulo} finalizada`);
+    }, subasta.duracion * 1000);
+    
+    res.json({ message: "Subasta iniciada correctamente", subasta });
+});
+
 app.get("/estado-subasta/:subastaId", (req, res) => {
     const subastaId = parseInt(req.params.subastaId);
     const subasta = subastas.find(s => s.id === subastaId);
@@ -284,12 +345,16 @@ app.get("/estado-subasta/:subastaId", (req, res) => {
 
     const mejorOferta = subasta.ofertas.reduce((max, o) => o.monto > max.monto ? o : max, { monto: 0, nombre: null });
 
+    // Determinamos si la subasta está configurada revisando si los valores críticos están definidos
+    const configurada = subasta.precioBase > 0 && subasta.incrementoMinimo > 0 && subasta.duracion > 0;
+
     res.json({
         id: subasta.id,
         titulo: subasta.titulo,
         artista: subasta.artista,
         imagen: subasta.imagen,
         activa: subasta.activa,
+        configurada: configurada,
         restante,
         ganador: !subasta.activa && mejorOferta.nombre ? mejorOferta.nombre : null,
         oferta: !subasta.activa ? mejorOferta.monto : null,

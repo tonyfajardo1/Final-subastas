@@ -20,6 +20,18 @@ app.post("/registrar-postor", async (req, res) => {
     const { nombre, subastaId } = req.body;
 
     try {
+        // Primero verificamos si la subasta está configurada y activa
+        const estadoRes = await fetch(`${MANEJADOR_URL}/estado-subasta/${subastaId}`);
+        const estado = await estadoRes.json();
+
+        if (!estado.configurada) {
+            return res.status(400).json({ error: "Esta subasta aún no ha sido configurada por el manejador" });
+        }
+
+        if (!estado.activa) {
+            return res.status(400).json({ error: "La subasta no está activa" });
+        }
+
         const respuesta = await fetch(`${MANEJADOR_URL}/actualizar-postores`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -83,6 +95,30 @@ app.get("/estado-subasta/:id", async (req, res) => {
         res.json(datos);
     } catch (error) {
         res.status(500).json({ error: "Error obteniendo estado de subasta" });
+    }
+});
+
+// Obtener todas las subastas
+app.get("/subastas", async (req, res) => {
+    try {
+        const respuesta = await fetch(`${MANEJADOR_URL}/subastas`);
+        const datos = await respuesta.json();
+        res.json(datos);
+    } catch (error) {
+        console.error("Error obteniendo todas las subastas:", error);
+        res.status(500).json({ error: "Error obteniendo todas las subastas" });
+    }
+});
+
+// Obtener subastas activas
+app.get("/subastas/activas", async (req, res) => {
+    try {
+        const respuesta = await fetch(`${MANEJADOR_URL}/subastas/activas`);
+        const datos = await respuesta.json();
+        res.json(datos);
+    } catch (error) {
+        console.error("Error obteniendo subastas activas:", error);
+        res.status(500).json({ error: "Error obteniendo subastas activas" });
     }
 });
 
