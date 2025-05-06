@@ -6,29 +6,86 @@
     <title>Manejador de Subastas</title>
     <link rel="stylesheet" href="styles.css" />
     <style>
+        :root {
+            --primary-color: #2196f3;
+            --secondary-color: #03dac6;
+            --warning-color: #ff9800;
+            --error-color: #f44336;
+            --success-color: #4caf50;
+            --background-color: #f5f7fa;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --border-radius: 10px;
+            --box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
         body {
             margin: 0;
             padding: 20px;
             font-family: 'Arial', sans-serif;
-            background-color: #f4f6f9;
-            color: #333;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
         }
 
         h1 {
             text-align: center;
-            color: #2c3e50;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 2.2rem;
         }
 
         button {
             padding: 10px 20px;
-            margin: 15px auto;
-            display: block;
+            margin: 0;
             font-weight: bold;
-            background-color: #3498db;
+            background-color: var(--secondary-color);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 50px;
             cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background-color: #00bfa5;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 8px rgba(0,0,0,0.15);
+        }
+        
+        .action-button {
+            display: flex;
+            justify-content: center;
+            margin: 20px auto;
+            gap: 10px;
+        }
+        
+        .start-button {
+            background-color: var(--primary-color);
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 1rem;
+        }
+        
+        .start-button:hover {
+            background-color: #1976d2;
+        }
+        
+        .update-button {
+            background-color: var(--secondary-color);
+            width: 100%;
+            margin: 5px 0;
+            font-size: 0.85rem;
         }
 
         .main-layout {
@@ -43,33 +100,115 @@
         .subastas-container {
             flex: 3;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 25px;
         }
 
         .subasta {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            padding: 15px;
+            background: var(--card-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
             text-align: center;
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .subasta:hover {
+            transform: translateY(-5px);
+        }
+
+        .subasta h2 {
+            color: var(--primary-color);
+            margin: 0 0 5px;
+            font-size: 1.5rem;
+            text-align: left;
+        }
+        
+        .subasta-artista {
+            text-align: left;
+            color: #555;
+            margin-bottom: 12px;
         }
 
         .subasta img {
             width: 100%;
-            max-height: 240px;
+            height: 200px;
             object-fit: cover;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
+            margin: 10px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .subasta-info {
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+            padding: 12px;
+            margin: 15px 0;
+            text-align: left;
+        }
+        
+        .subasta-info p {
+            margin: 8px 0;
+        }
+        
+        .price-tag {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
         }
 
         .subasta input[type="number"] {
-            width: 45%;
-            margin-top: 5px;
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .subasta input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .footer-controls {
+            margin-top: auto;
+            padding-top: 15px;
+        }
+        
+        .order-control {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
         }
 
-        .subasta-buttons button {
-            margin: 5px 3px;
-            padding: 8px 14px;
+        select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            flex: 1;
+        }
+        
+        .details-button {
+            background-color: var(--primary-color);
+            width: 100%;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
         }
 
         .panel-lateral {
@@ -77,22 +216,29 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            position: sticky;
+            top: 20px;
         }
 
         .panel {
-            background: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background: var(--card-color);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
         }
 
         .panel h3 {
             margin-top: 0;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            font-size: 1.3rem;
         }
 
         #estadoSubasta {
             font-size: 16px;
+            line-height: 1.6;
         }
 
         #ganadores ul {
@@ -101,21 +247,85 @@
         }
 
         #ganadores li {
-            background: #eafaf1;
-            margin-bottom: 8px;
-            padding: 8px;
-            border-radius: 5px;
+            background: #e8f5e9;
+            margin-bottom: 12px;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            font-weight: normal;
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .sin-ganador {
+            background: #fff3cd !important;
+            border-left: 4px solid var(--warning-color) !important;
+        }
+        
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
             font-weight: bold;
-            border: 1px dashed #2ecc71;
+            color: white;
+            text-transform: uppercase;
+        }
+        
+        .status-inactive {
+            background-color: var(--warning-color);
+        }
+        
+        .status-active {
+            background-color: var(--success-color);
+        }
+        
+        .status-unconfigured {
+            background-color: var(--error-color);
+        }
+
+        #debug-info {
+            background-color: #f0f8ff;
+            border-radius: var(--border-radius);
+            padding: 10px;
+            margin-bottom: 15px;
+            font-family: monospace;
+            display: none;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 1000px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            
+            .panel-lateral {
+                width: 100%;
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .subastas-container {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
 <h1>🎯 Bienvenido al Manejador de Subastas</h1>
-<button onclick="iniciarTodasLasSubastas()">▶️ Iniciar Subastas (según orden)</button>
+
+<div class="action-button">
+    <button class="start-button" onclick="iniciarTodasLasSubastas()">▶️ Iniciar Subastas (según orden)</button>
+    <button onclick="limpiarResultados()" class="clear-results-button">🧹 Limpiar Resultados</button>
+</div>
+
+<div id="debug-info"></div>
 
 <div class="main-layout">
-    <div class="subastas-container" id="listaSubastas"></div>
+    <div class="subastas-container" id="listaSubastas">
+        <!-- Las subastas se cargarán aquí dinámicamente -->
+    </div>
 
     <div class="panel-lateral">
         <div class="panel" id="estadoPanel">
@@ -130,80 +340,281 @@
     </div>
 </div>
 <script>
+    // Variables globales
     let subastas = [];
     let subastaActivaIndex = -1;
-    let intervalo;
+    let intervalo = null;
     let resultados = [];
+    let resultadosProcesados = new Set(); // Conjunto para evitar duplicados basado en subasta+estado
+    let ultimaActualizacionUI = 0; // Evita actualizaciones muy frecuentes de la UI
+    let actualizando = false; // Bandera para evitar llamadas simultáneas
+    let modoDebug = false; // Modo de depuración
 
-    async function verificarSecuencia() {
-        try {
-            const res = await fetch('/subastas/estado-general');
-            const data = await res.json();
-            subastas = data.subastas.sort((a, b) => a.orden - b.orden);
-            renderizarSubastas(subastas);
-            if (data.estadoSecuencia.enCurso) {
-                subastaActivaIndex = data.estadoSecuencia.indiceActual;
-                iniciarSubastaSecuencial();
-            }
-        } catch (err) {
-            console.error("❌ Error verificando estado:", err);
+    // Iniciar cuando se carga la página
+    document.addEventListener('DOMContentLoaded', () => {
+        cargarSubastasInicial();
+    });
+
+    // Limpia todos los intervalos para evitar problemas de rendimiento
+    function limpiarIntervalos() {
+        if (intervalo) {
+            clearInterval(intervalo);
+            intervalo = null;
         }
     }
 
-    async function cargarSubastas() {
+    // Función para activar/desactivar modo debug
+    function toggleDebug() {
+        modoDebug = !modoDebug;
+        document.getElementById('debug-info').style.display = modoDebug ? 'block' : 'none';
+    }
+
+    // Función para mostrar información de depuración
+    function mostrarDebug(mensaje) {
+        if (!modoDebug) return;
+        const debugEl = document.getElementById('debug-info');
+        const timestamp = new Date().toLocaleTimeString();
+        debugEl.innerHTML = `[${timestamp}] ${mensaje}<br>${debugEl.innerHTML}`;
+        
+        // Limitar a 5 mensajes para evitar sobrecarga
+        const lineas = debugEl.innerHTML.split('<br>');
+        if (lineas.length > 5) {
+            debugEl.innerHTML = lineas.slice(0, 5).join('<br>');
+        }
+    }
+
+    // Carga inicial de subastas - solo se ejecuta una vez
+    async function cargarSubastasInicial() {
         try {
             const response = await fetch("/subastas");
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+            
             subastas = await response.json();
             renderizarSubastas(subastas);
+            
+            // Verificar estado general (una sola vez)
+            verificarEstadoGeneral();
         } catch (error) {
             console.error("❌ Error cargando subastas:", error);
+            mostrarErrorDeCarga();
         }
+    }
+    
+    // Verificación del estado general - separada de la carga para mejor control
+    async function verificarEstadoGeneral() {
+        if (actualizando) return; // Evita múltiples llamadas simultáneas
+        
+        try {
+            actualizando = true;
+            const res = await fetch('/subastas/estado-general');
+            if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+            
+            const data = await res.json();
+            
+            // Actualizar subastas sin re-renderizar completamente
+            actualizarEstadoSubastas(data.subastas);
+            
+            // Comprobar si hay una secuencia en curso
+            if (data.estadoSecuencia && data.estadoSecuencia.enCurso) {
+                subastaActivaIndex = data.estadoSecuencia.indiceActual;
+                // Solo iniciar si no hay un intervalo ya corriendo
+                if (!intervalo) {
+                    const subastaId = subastas.find(s => s.orden === subastaActivaIndex + 1)?.id;
+                    if (subastaId) {
+                        monitorearSubasta(subastaId);
+                    }
+                }
+            }
+            
+            actualizando = false;
+        } catch (err) {
+            console.error("❌ Error verificando estado:", err);
+            actualizando = false;
+        }
+    }
+    
+    // Actualiza solo el estado de las subastas, no toda la interfaz
+    function actualizarEstadoSubastas(nuevasSubastas) {
+        if (!Array.isArray(nuevasSubastas) || nuevasSubastas.length === 0) return;
+        
+        nuevasSubastas.forEach(nuevaSubasta => {
+            const index = subastas.findIndex(s => s.id === nuevaSubasta.id);
+            if (index >= 0) {
+                // Solo actualizar propiedades de estado, no toda la subasta
+                subastas[index].activa = nuevaSubasta.activa;
+                subastas[index].ofertas = nuevaSubasta.ofertas;
+                subastas[index].postores = nuevaSubasta.postores;
+                
+                // Actualizar el badge de estado en la UI
+                const badge = document.querySelector(`#subasta-${nuevaSubasta.id} .status-badge`);
+                if (badge) {
+                    if (nuevaSubasta.activa) {
+                        badge.className = "status-badge status-active";
+                        badge.textContent = "ACTIVA";
+                    } else {
+                        const configurada = nuevaSubasta.precioBase > 0 && nuevaSubasta.incrementoMinimo > 0 && nuevaSubasta.duracion > 0;
+                        if (configurada) {
+                            badge.className = "status-badge status-inactive";
+                            badge.textContent = "INACTIVA";
+                        } else {
+                            badge.className = "status-badge status-unconfigured";
+                            badge.textContent = "SIN CONFIGURAR";
+                        }
+                    }
+                }
+                
+                // Actualizar botón de iniciar si es necesario
+                actualizarBotonIniciar(nuevaSubasta);
+            }
+        });
+    }
+    
+    function actualizarBotonIniciar(subasta) {
+        const contenedorBotones = document.querySelector(`#subasta-${subasta.id} .footer-controls > div:last-child`);
+        if (!contenedorBotones) return;
+        
+        const configurada = subasta.precioBase > 0 && subasta.incrementoMinimo > 0 && subasta.duracion > 0;
+        
+        if (configurada && !subasta.activa) {
+            // Si no existe el botón de iniciar, agregarlo
+            if (!document.querySelector(`#iniciar-${subasta.id}`)) {
+                const botonIniciar = document.createElement('button');
+                botonIniciar.id = `iniciar-${subasta.id}`;
+                botonIniciar.className = "details-button";
+                botonIniciar.style.backgroundColor = "var(--success-color)";
+                botonIniciar.innerHTML = "▶️ Iniciar";
+                botonIniciar.onclick = () => iniciarSubastaEspecifica(subasta.id);
+                contenedorBotones.appendChild(botonIniciar);
+            }
+        } else {
+            // Si existe el botón pero la subasta ya no es iniciable, quitarlo
+            const boton = document.querySelector(`#iniciar-${subasta.id}`);
+            if (boton) {
+                boton.remove();
+            }
+        }
+    }
+
+    function mostrarErrorDeCarga() {
+        document.getElementById("listaSubastas").innerHTML = `
+            <div style="grid-column: 1/-1; padding: 20px; background-color: #ffebee; border-radius: 10px; text-align: center;">
+                <h3 style="color: #c62828;">No se pudieron cargar las subastas</h3>
+                <p style="margin: 15px 0;">Por favor, verifica la conexión con el servidor.</p>
+                <button onclick="cargarSubastasInicial()">Intentar nuevamente</button>
+            </div>
+        `;
+    }
+
+    function formatearPrecio(precio) {
+        if (!precio) return "0";
+        return Number(precio).toLocaleString('es-ES');
     }
 
     function renderizarSubastas(subastas) {
         const contenedor = document.getElementById("listaSubastas");
-        contenedor.innerHTML = "";
+        contenedor.innerHTML = ""; // Limpiar contenedor
 
-        subastas.forEach((subasta, i) => {
+        subastas.forEach((subasta) => {
             const div = document.createElement("div");
             div.className = "subasta";
             div.id = `subasta-${subasta.id}`;
-
+            
             let opcionesOrden = "";
             for (let j = 1; j <= subastas.length; j++) {
-                const selected = (subasta.orden || (i + 1)) === j ? "selected" : "";
+                const selected = subasta.orden === j ? "selected" : "";
                 opcionesOrden += `<option value="${j}" ${selected}>${j}</option>`;
             }
 
+            const configurada = subasta.precioBase > 0 && subasta.incrementoMinimo > 0 && subasta.duracion > 0;
+            const estadoBadge = subasta.activa
+                ? '<span class="status-badge status-active">ACTIVA</span>'
+                : configurada
+                ? '<span class="status-badge status-inactive">INACTIVA</span>'
+                : '<span class="status-badge status-unconfigured">SIN CONFIGURAR</span>';
+
             div.innerHTML = `
-        <h2>${subasta.titulo}</h2>
-        <p><b>Artista:</b> ${subasta.artista}</p>
-        <img src="${subasta.imagen}" alt="${subasta.titulo}">
-        <p><b>Precio base actual:</b> $<span id="precio-${subasta.id}">${subasta.precioBase}</span></p>
-        <p><b>Incremento mínimo:</b> $<span id="incremento-${subasta.id}">${subasta.incrementoMinimo || 0}</span></p>
-        <p><b>Duración:</b> <span id="duracion-${subasta.id}">${subasta.duracion || 60}</span> segundos</p>
-
-        <div class="subasta-buttons">
-          <input type="number" id="nuevoPrecio-${subasta.id}" placeholder="Nuevo precio base">
-          <button onclick="editarCampo(${subasta.id}, 'precio')">Actualizar</button>
-
-          <input type="number" id="nuevoIncremento-${subasta.id}" placeholder="Nuevo incremento mínimo">
-          <button onclick="editarCampo(${subasta.id}, 'incremento')">Actualizar</button>
-
-          <input type="number" id="nuevaDuracion-${subasta.id}" placeholder="Nueva duración (s)">
-          <button onclick="editarCampo(${subasta.id}, 'duracion')">Actualizar</button>
-        </div>
-
-        <br>
-        <label for="orden-${subasta.id}"><b>Orden:</b></label>
-        <select id="orden-${subasta.id}">${opcionesOrden}</select>
-        <a href="subasta.html?id=${subasta.id}">
-          <button style="margin-top:10px;">🔍 Ver detalles</button>
-        </a>
-      `;
-
+                ${estadoBadge}
+                <h2>${subasta.titulo}</h2>
+                <p class="subasta-artista"><b>Artista:</b> ${subasta.artista}</p>
+                <img src="${subasta.imagen}" alt="${subasta.titulo}" loading="lazy">
+                <div class="subasta-info">
+                    <p><b>Precio base:</b> $<span class="price-tag" id="precio-${subasta.id}">${formatearPrecio(subasta.precioBase)}</span></p>
+                    <p><b>Incremento mínimo:</b> $<span id="incremento-${subasta.id}">${formatearPrecio(subasta.incrementoMinimo || 0)}</span></p>
+                    <p><b>Duración:</b> <span id="duracion-${subasta.id}">${subasta.duracion || 0}</span> segundos</p>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="nuevoPrecio-${subasta.id}" placeholder="Nuevo precio base">
+                    <button class="update-button" onclick="editarCampo(${subasta.id}, 'precio')">Actualizar</button>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="nuevoIncremento-${subasta.id}" placeholder="Nuevo incremento mínimo">
+                    <button class="update-button" onclick="editarCampo(${subasta.id}, 'incremento')">Actualizar</button>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="nuevaDuracion-${subasta.id}" placeholder="Nueva duración (s)">
+                    <button class="update-button" onclick="editarCampo(${subasta.id}, 'duracion')">Actualizar</button>
+                </div>
+                <div class="footer-controls">
+                    <div class="order-control">
+                        <label for="orden-${subasta.id}"><b>Orden:</b></label>
+                        <select id="orden-${subasta.id}">${opcionesOrden}</select>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <a href="subasta.html?id=${subasta.id}" style="flex: 1; text-decoration: none;">
+                            <button class="details-button">🔍 Ver detalles</button>
+                        </a>
+                        ${configurada && !subasta.activa ? 
+                            `<button id="iniciar-${subasta.id}" class="details-button" style="background-color: var(--success-color)" onclick="iniciarSubastaEspecifica(${subasta.id})">▶️ Iniciar</button>` : ''}
+                    </div>
+                </div>
+            `;
             contenedor.appendChild(div);
         });
+    }
+
+    async function iniciarSubastaEspecifica(subastaId) {
+        limpiarIntervalos(); // Asegurar que no hay intervalos activos
+        
+        try {
+            mostrarDebug(`Iniciando subasta específica: ${subastaId}`);
+            
+            const response = await fetch("/iniciar-subasta-especifica", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ subastaId })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                alert(`❌ Error: ${data.error}`);
+                return;
+            }
+            
+            alert("✅ Subasta iniciada correctamente");
+            
+            // Limpiar resultados específicos de esta subasta
+            const subasta = subastas.find(s => s.id === subastaId);
+            if (subasta) {
+                limpiarResultadosDeSubasta(subasta.titulo);
+                
+                // Actualizar UI y comenzar monitoreo
+                document.getElementById("estadoSubasta").innerHTML = `⏳ Monitoreando la subasta "${subasta.titulo}"...`;
+                monitorearSubasta(subastaId);
+            }
+        } catch (error) {
+            console.error("Error al iniciar la subasta:", error);
+            alert("❌ Error al iniciar la subasta");
+        }
+    }
+    
+    // Función específica para monitorear una subasta
+    function monitorearSubasta(subastaId) {
+        limpiarIntervalos(); // Limpia cualquier intervalo previo
+        
+        mostrarDebug(`Inicio monitoreo de subasta: ${subastaId}`);
+        // Usar un intervalo menor para más responsividad, pero con lógica para no saturar
+        intervalo = setInterval(() => verificarEstadoSubasta(subastaId), 1000);
     }
 
     async function editarCampo(subastaId, campo) {
@@ -212,9 +623,9 @@
         const nuevaDuracion = document.getElementById(`nuevaDuracion-${subastaId}`).value;
 
         let body = { subastaId };
-        if (campo === "precio") body.nuevoPrecio = parseFloat(nuevoPrecio);
-        if (campo === "incremento") body.nuevoIncremento = parseFloat(nuevoIncremento);
-        if (campo === "duracion") body.nuevaDuracion = parseInt(nuevaDuracion);
+        if (campo === "precio" && nuevoPrecio) body.nuevoPrecio = parseFloat(nuevoPrecio);
+        if (campo === "incremento" && nuevoIncremento) body.nuevoIncremento = parseFloat(nuevoIncremento);
+        if (campo === "duracion" && nuevaDuracion) body.nuevaDuracion = parseInt(nuevaDuracion);
 
         try {
             const response = await fetch("/editar-precio", {
@@ -224,10 +635,30 @@
             });
 
             if (!response.ok) throw new Error("Error al actualizar campo");
-
-            if (campo === "precio") document.getElementById(`precio-${subastaId}`).innerText = body.nuevoPrecio;
-            if (campo === "incremento") document.getElementById(`incremento-${subastaId}`).innerText = body.nuevoIncremento;
-            if (campo === "duracion") document.getElementById(`duracion-${subastaId}`).innerText = body.nuevaDuracion;
+            const data = await response.json();
+            
+            // Actualizar el valor en la subasta local
+            const subasta = subastas.find(s => s.id === subastaId);
+            if (subasta) {
+                if (campo === "precio") {
+                    subasta.precioBase = body.nuevoPrecio;
+                    document.getElementById(`precio-${subastaId}`).innerText = formatearPrecio(body.nuevoPrecio);
+                    document.getElementById(`nuevoPrecio-${subastaId}`).value = "";
+                }
+                if (campo === "incremento") {
+                    subasta.incrementoMinimo = body.nuevoIncremento;
+                    document.getElementById(`incremento-${subastaId}`).innerText = formatearPrecio(body.nuevoIncremento);
+                    document.getElementById(`nuevoIncremento-${subastaId}`).value = "";
+                }
+                if (campo === "duracion") {
+                    subasta.duracion = body.nuevaDuracion;
+                    document.getElementById(`duracion-${subastaId}`).innerText = body.nuevaDuracion;
+                    document.getElementById(`nuevaDuracion-${subastaId}`).value = "";
+                }
+                
+                // Actualizar botón de iniciar
+                actualizarBotonIniciar(subasta);
+            }
 
             alert("✅ Campo actualizado correctamente");
         } catch (err) {
@@ -237,83 +668,185 @@
     }
 
     async function iniciarTodasLasSubastas() {
+        limpiarIntervalos(); // Asegurar que no hay intervalos activos
+        limpiarResultados(); // Limpiar resultados anteriores
+        
         const ordenSeleccionado = [];
+        let hayError = false;
+        
+        // Validar y recopilar órdenes
         for (const subasta of subastas) {
             const orden = parseInt(document.getElementById(`orden-${subasta.id}`).value);
             if (ordenSeleccionado.includes(orden)) {
                 alert("❌ No puedes repetir un mismo orden entre subastas.");
-                return;
+                hayError = true;
+                break;
             }
             ordenSeleccionado.push(orden);
             subasta.orden = orden;
         }
+        
+        if (hayError) return;
 
+        // Ordenar subastas
         subastas.sort((a, b) => a.orden - b.orden);
         subastaActivaIndex = 0;
-        resultados = [];
 
         try {
-            await fetch("/iniciar-subastas-secuencialmente", {
+            const response = await fetch("/iniciar-subastas-secuencialmente", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" }
             });
-
-            iniciarSubastaSecuencial();
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || "Error al iniciar subastas");
+            }
+            
+            // Empezar monitoreo inmediatamente
+            document.getElementById("estadoSubasta").innerHTML = "⏳ Iniciando secuencia de subastas...";
+            
+            // Monitorear solo la primera subasta
+            if (subastas.length > 0) {
+                monitorearSubasta(subastas[0].id);
+            }
         } catch (err) {
-            alert("❌ Error iniciando subastas");
+            alert(`❌ Error iniciando subastas: ${err.message}`);
             console.error(err);
         }
     }
 
-    async function iniciarSubastaSecuencial() {
-        if (subastaActivaIndex >= subastas.length) {
-            document.getElementById("estadoSubasta").innerHTML = "🎉 Todas las subastas han terminado.";
-            mostrarResumen();
-            return;
+    // Verifica el estado de una subasta específica
+    async function verificarEstadoSubasta(subastaId) {
+        const ahora = Date.now();
+        
+        // Limitar frecuencia de API calls
+        if (ahora - ultimaActualizacionUI < 500) {
+            return; // No hacer nada si han pasado menos de 500ms
         }
-
-        const subastaId = subastas[subastaActivaIndex].id;
-        intervalo = setInterval(() => verificarFinSubasta(subastaId), 1000);
-    }
-
-    async function verificarFinSubasta(subastaId) {
+        ultimaActualizacionUI = ahora;
+        
         try {
             const response = await fetch(`/estado-subasta/${subastaId}`);
-            const data = await response.json();
-            const estado = document.getElementById("estadoSubasta");
-
-            if (data.activa) {
-                const tituloActual = subastas.find(s => s.id === subastaId)?.titulo || "Subasta activa";
-                estado.innerHTML = `<b>🎨 ${tituloActual}</b><br>⏰ Tiempo restante: ${data.restante} segundos`;
-        } else {
-                clearInterval(intervalo);
-                if (data.ganador) {
-                    estado.innerHTML = `🏆 Subasta finalizada. Ganador: <b>${data.ganador}</b> con $<b>${data.oferta}</b>`;
-                    resultados.push({ titulo: subastas[subastaActivaIndex].titulo, ganador: data.ganador, monto: data.oferta });
-                } else {
-                    estado.innerHTML = `❌ Subasta finalizada sin ganador.`;
-                    resultados.push({ titulo: subastas[subastaActivaIndex].titulo, ganador: null, monto: null });
-                }
-
-                subastaActivaIndex++;
-                setTimeout(() => iniciarSubastaSecuencial(), 1000);
+            if (!response.ok) {
+                console.error(`Error HTTP: ${response.status}`);
+                return;
             }
+            
+            const data = await response.json();
+            actualizarUIEstadoSubasta(data, subastaId);
         } catch (error) {
             console.error("❌ Error al verificar estado de subasta:", error);
+            // No detener el intervalo en caso de error temporal
         }
+    }
+    
+    // Actualiza la UI con el estado de la subasta
+    function actualizarUIEstadoSubasta(data, subastaId) {
+        const estado = document.getElementById("estadoSubasta");
+        const subasta = subastas.find(s => s.id === subastaId);
+        
+        if (!subasta) return;
+        
+        if (data.activa) {
+            // Subasta activa
+            estado.innerHTML = `<b>🎨 ${data.titulo}</b><br>⏰ Tiempo restante: ${data.restante} segundos`;
+            
+            // Actualizar la UI cada 5 segundos para mostrar cambios en ofertas/postores
+            if (data.restante % 5 === 0) {
+                verificarEstadoGeneral();
+            }
+        } else {
+            // Subasta terminada
+            limpiarIntervalos();
+            
+            // Identificador único para esta combinación de subasta y resultado
+            const resultadoKey = `${subastaId}-${data.ganador || 'sin-ganador'}`;
+            
+            // Solo procesar si este resultado no ha sido procesado antes
+            if (!resultadosProcesados.has(resultadoKey)) {
+                resultadosProcesados.add(resultadoKey);
+                
+                if (data.ganador) {
+                    estado.innerHTML = `🏆 Subasta "${data.titulo}" finalizada.<br>Ganador: <b>${data.ganador}</b> con $<b>${formatearPrecio(data.oferta)}</b>`;
+                    agregarResultado({
+                        id: subastaId,
+                        titulo: data.titulo,
+                        ganador: data.ganador,
+                        monto: data.oferta
+                    });
+                } else {
+                    estado.innerHTML = `❌ Subasta "${data.titulo}" finalizada sin ganador.`;
+                    agregarResultado({
+                        id: subastaId,
+                        titulo: data.titulo,
+                        ganador: null,
+                        monto: null
+                    });
+                }
+                
+                mostrarDebug(`Subasta ${data.titulo} finalizada`);
+            }
+            
+            // Si estamos en modo secuencial, avanzar a la siguiente subasta
+            if (subastaActivaIndex !== -1) {
+                subastaActivaIndex++;
+                // Si hay más subastas en la secuencia, monitorear la siguiente
+                if (subastaActivaIndex < subastas.length) {
+                    setTimeout(() => {
+                        const siguienteId = subastas[subastaActivaIndex].id;
+                        monitorearSubasta(siguienteId);
+                        mostrarDebug(`Avanzando a siguiente subasta: ${siguienteId}`);
+                    }, 1000);
+                } else {
+                    // Fin de la secuencia
+                    subastaActivaIndex = -1;
+                    estado.innerHTML += "<br><br>🎉 Todas las subastas han terminado.";
+                    // Actualizar la UI una última vez para mostrar todos los cambios
+                    verificarEstadoGeneral();
+                }
+            }
+        }
+    }
+
+    function limpiarResultados() {
+        resultados = [];
+        resultadosProcesados.clear();
+        mostrarResumen();
+        mostrarDebug("Resultados limpiados");
+    }
+    
+    function limpiarResultadosDeSubasta(titulo) {
+        // Eliminar resultados específicos de una subasta
+        resultados = resultados.filter(r => r.titulo !== titulo);
+        // Actualizar la visualización
+        mostrarResumen();
+    }
+    
+    function agregarResultado(resultado) {
+        // Reemplazar resultado existente si ya hay uno con este título
+        const index = resultados.findIndex(r => r.titulo === resultado.titulo);
+        if (index !== -1) {
+            resultados[index] = resultado;
+        } else {
+            resultados.push(resultado);
+        }
+        mostrarResumen();
     }
 
     function mostrarResumen() {
         const ul = document.getElementById("listaGanadores");
-        ul.innerHTML = resultados.map(r =>
+        if (resultados.length === 0) {
+            ul.innerHTML = "<li>No hay subastas finalizadas aún.</li>";
+            return;
+        }
+        
+        ul.innerHTML = resultados.map(r => 
             r.ganador
-                ? `<li>🏆 <b>${r.titulo}</b>: Ganador <b>${r.ganador}</b> con $<b>${r.monto}</b></li>`
-                : `<li>❌ <b>${r.titulo}</b>: Sin ganador</li>`
+                ? `<li>🏆 <b>${r.titulo}</b>: Ganador <b>${r.ganador}</b> con $<b>${formatearPrecio(r.monto)}</b></li>`
+                : `<li class="sin-ganador">❌ <b>${r.titulo}</b>: Sin ganador</li>`
         ).join("");
     }
-
-    // Detectar si estaba en proceso desde antes
-    verificarSecuencia();
 </script>
 </body>
 </html>
